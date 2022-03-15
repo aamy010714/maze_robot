@@ -11,6 +11,8 @@ int IN4=4;
 #define ECHO_FRONT 13
 #define TRIG_LEFT 10
 #define ECHO_LEFT 11
+//스위치
+#define SWITCH 22
 
 int ultrasonic(int a, int b, int c){
   long duration,distance;
@@ -31,6 +33,8 @@ int ultrasonic(int a, int b, int c){
     Serial.print("\nFront Distance:");
   Serial.print(distance);
   Serial.println(" Cm");
+
+  return distance;
 }
  
 void setup() {
@@ -45,19 +49,50 @@ void setup() {
   pinMode(IN2,OUTPUT);
   pinMode(IN3,OUTPUT);
   pinMode(IN4,OUTPUT);
+  pinMode(SWITCH,INPUT_PULLUP);
 }
+
+int switching = 0;
 
 void loop() {
   // 0 : R, 1 : F, 2 : L
-  ultrasonic(TRIG_RIGHT, ECHO_RIGHT, 0);
-  ultrasonic(TRIG_FRONT, ECHO_FRONT, 1);
-  ultrasonic(TRIG_LEFT, ECHO_LEFT, 2);
+  int right_distance = ultrasonic(TRIG_RIGHT, ECHO_RIGHT, 0);
+  int front_distance = ultrasonic(TRIG_FRONT, ECHO_FRONT, 1);
+  int left_distance = ultrasonic(TRIG_LEFT, ECHO_LEFT, 2);
+  int look_distance = 8;
   
-  bothMotorStart();
+  if(front_distance<look_distance){
+    Stop();
+    if(right_distance>=look_distance && left_distance<look_distance){
+      turnRight();
+      Serial.println("turn_right");
+      delay(1000);
+    }
+    else if(right_distance<look_distance && left_distance>=look_distance){
+      Serial.println("turn_left");
+      turnLeft();
+      delay(1000);
+    }
+    else if(right_distance>=look_distance && left_distance>=look_distance){
+      Serial.println("All OK");
+      turnRight();
+      delay(1000);
+    }
+    else{
+      Serial.println("U-turn");
+      turnRight();
+      delay(1000);
+    }
+  }
+  else{
+    go();
+    Serial.println("go");
+    delay(1000);
+  }
 }
  
 //모터A,B 정회전
-void bothMotorStart()
+void go()
 {
     digitalWrite(IN1,HIGH);
     digitalWrite(IN2,LOW);
@@ -66,7 +101,7 @@ void bothMotorStart()
 }
  
 //모터A,B Stop
-void stopAllMotor()
+void Stop()
 {
     digitalWrite(IN1,LOW);
     digitalWrite(IN2,LOW);
@@ -79,48 +114,12 @@ void turnLeft()
 {
     digitalWrite(IN1,LOW);
     digitalWrite(IN2,HIGH);
-    digitalWrite(IN3,HIGH);
+    digitalWrite(IN3,LOW);
     digitalWrite(IN4,LOW);
 }
  
 //모터A 정회전, 모터B 역회전
 void turnRight()
-{
-    digitalWrite(IN1,HIGH);
-    digitalWrite(IN2,LOW);
-    digitalWrite(IN3,LOW);
-    digitalWrite(IN4,HIGH);
-}
- 
-//모터A 정회전, 모터B Stop
-void motorA_Rotation()
-{
-    digitalWrite(IN1,HIGH);
-    digitalWrite(IN2,LOW);
-    digitalWrite(IN3,LOW);
-    digitalWrite(IN4,LOW);
-}
- 
-//모터A Stop, 모터B 정회전
-void motorB_Rotation()
-{
-    digitalWrite(IN1,LOW);
-    digitalWrite(IN2,LOW);
-    digitalWrite(IN3,HIGH);
-    digitalWrite(IN4,LOW);
-}
- 
-//모터A 역회전, 모터B Stop
-void motorA_Reverse()
-{
-    digitalWrite(IN1,LOW);
-    digitalWrite(IN2,HIGH);
-    digitalWrite(IN3,LOW);
-    digitalWrite(IN4,LOW);
-}
- 
-//모터A Stop, 모터B 역회전
-void motorB_Reverse()
 {
     digitalWrite(IN1,LOW);
     digitalWrite(IN2,LOW);
