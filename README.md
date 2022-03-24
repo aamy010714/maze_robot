@@ -1,1 +1,1 @@
-moze_robot
+maze_robot
